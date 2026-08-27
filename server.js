@@ -15,6 +15,7 @@ app.get("/", (req, res) => {
   });
 });
 
+// Chat endpoint
 app.post("/chat", (req, res) => {
   const message = req.body.message || "";
 
