@@ -15,7 +15,7 @@ app.get("/", (req, res) => {
   });
 });
 
-app.post("/api/chat", (req, res) => {
+app.post("/chat", (req, res) => {
   const message = req.body.message || "";
 
   res.json({
