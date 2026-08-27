@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Euzebio AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #222;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 700px;
+      height: 95vh;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: #075e54;
+      color: white;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .status {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    #chat {
+      flex: 1;
+      padding: 18px;
+      overflow-y: auto;
+      background: #eef2f5;
+    }
+
+    .message {
+      margin-bottom: 15px;
+      display: flex;
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .message.ai {
+      justify-content: flex-start;
+    }
+
+    .bubble {
+      max-width: 80%;
+      padding: 12px 15px;
+      border-radius: 15px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .user .bubble {
+      background: #075e54;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .ai .bubble {
+      background: white;
+      color: #222;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
+
+    .input-area {
+      padding: 12px;
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid #ddd;
+      background: white;
+    }
+
+    #messageInput {
+      flex: 1;
+      padding: 13px;
+      border: 1px solid #ccc;
+      border-radius: 25px;
+      outline: none;
+      font-size: 16px;
+    }
+
+    #messageInput:focus {
+      border-color: #075e54;
+    }
+
+    #sendButton {
+      width: 52px;
+      height: 52px;
+      border: none;
+      border-radius: 50%;
+      background: #075e54;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    #sendButton:hover {
+      background: #064c44;
+    }
+
+    #sendButton:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+
+    .typing {
+      font-style: italic;
+      color: #777;
+      font-size: 14px;
+      padding: 5px;
+    }
+
+    .welcome {
+      text-align: center;
+      color: #666;
+      margin-top: 30px;
+      padding: 20px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        align-items: stretch;
+      }
+
+      .app {
+        height: 100vh;
+        border-radius: 0;
+      }
+
+      .bubble {
+        max-width: 88%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+
+    <div class="header">
+      <h1>🤖 Euzebio AI</h1>
+      <div class="status" id="status">
+        Connecting to Euzebio AI...
+      </div>
+    </div>
+
+    <div id="chat">
+
+      <div class="welcome" id="welcome">
+        <h2>Welcome to Euzebio AI 👋</h2>
+        <p>Ask me anything.</p>
+      </div>
+
+    </div>
+
+    <div class="input-area">
+
+      <input
+        type="text"
+        id="messageInput"
+        placeholder="Type your message..."
+        autocomplete="off"
+      />
+
+      <button id="sendButton">
+        ➤
+      </button>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    // ==========================================
+    // EUZEBIO AI BACKEND
+    // ==========================================
+
+    const API_URL =
+      "https://euzebio-ai-backend.onrender.com";
+
+    // ==========================================
+    // ELEMENTS
+    // ==========================================
+
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("messageInput");
+    const sendButton = document.getElementById("sendButton");
+    const status = document.getElementById("status");
+    const welcome = document.getElementById("welcome");
+
+    // ==========================================
+    // CHECK BACKEND
+    // ==========================================
+
+    async function checkBackend() {
+
+      try {
+
+        const response = await fetch(API_URL);
+
+        if (response.ok) {
+
+          status.textContent = "🟢 Euzebio AI is online";
+
+        } else {
+
+          status.textContent = "🟡 Backend responding";
+
+        }
+
+      } catch (error) {
+
+        status.textContent =
+          "🔴 Backend connection problem";
+
+        console.error(error);
+
+      }
+
+    }
+
+    checkBackend();
+
+    // ==========================================
+    // ADD MESSAGE
+    // ==========================================
+
+    function addMessage(text, sender) {
+
+      if (welcome) {
+        welcome.style.display = "none";
+      }
+
+      const message = document.createElement("div");
+
+      message.className =
+        "message " + sender;
+
+      const bubble = document.createElement("div");
+
+      bubble.className = "bubble";
+
+      bubble.textContent = text;
+
+      message.appendChild(bubble);
+
+      chat.appendChild(message);
+
+      chat.scrollTop = chat.scrollHeight;
+
+      return message;
+    }
+
+    // ==========================================
+    // TYPING INDICATOR
+    // ==========================================
+
+    function showTyping() {
+
+      const typing = document.createElement("div");
+
+      typing.className = "message ai";
+
+      typing.id = "typing";
+
+      typing.innerHTML =
+        '<div class="bubble typing">Euzebio AI is thinking...</div>';
+
+      chat.appendChild(typing);
+
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function removeTyping() {
+
+      const typing =
+        document.getElementById("typing");
+
+      if (typing) {
+        typing.remove();
+      }
+
+    }
+
+    // ==========================================
+    // SEND MESSAGE
+    // ==========================================
+
+    async function sendMessage() {
+
+      const message = input.value.trim();
+
+      if (!message) {
+        return;
+      }
+
+      // Show user message
+      addMessage(message, "user");
+
+      // Clear input
+      input.value = "";
+
+      // Disable button
+      sendButton.disabled = true;
+
+      // Show loading
+      showTyping();
+
+      try {
+
+        const response = await fetch(
+          API_URL + "/chat",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+              message: message
+            })
+          }
+        );
+
+        removeTyping();
+
+        if (!response.ok) {
+
+          throw new Error(
+            "Server returned " + response.status
+          );
+
+        }
+
+        const data = await response.json();
+
+        // ======================================
+        // ACCEPT DIFFERENT BACKEND RESPONSES
+        // ======================================
+
+        let reply =
+          data.reply ||
+          data.response ||
+          data.message ||
+          data.answer;
+
+        if (!reply) {
+
+          reply =
+            "Euzebio AI received your message, but the backend did not return a text response.";
+
+        }
+
+        addMessage(reply, "ai");
+
+      } catch (error) {
+
+        removeTyping();
+
+        console.error(
+          "Euzebio AI error:",
+          error
+        );
+
+        addMessage(
+          "⚠️ Unable to connect to Euzebio AI backend. Please check that the Render server is running.",
+          "ai"
+        );
+
+      } finally {
+
+        sendButton.disabled = false;
+
+        input.focus();
+
+      }
+
+    }
+
+    // =========================================
